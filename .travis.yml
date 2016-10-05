@@ -1,3 +1,9 @@
+env:
+  global:
+   # The next declaration is the encrypted COVERITY_SCAN_TOKEN, created
+   # via the "travis encrypt" command using the project repo's public key
+   - secure: "fINGFxV3xqi+A0KG3TktDIZGUGdVP7bsYCyPdNvfndltLhK/ePvQpk/0QxNrIK7CbCL13KsSthlCSC0UOjm/+cSOEGxEbDkvnq0wCbe2wYV8zD0fjgz19pF04BB4VUCjN2/B9cwLHBdorZSes6lBQUTpV9zqlPlc8mESMkx2SG5YFGctudzfXl/rkRIqedCvQlb+JUKR/DGS+fNHOhnrGsbY0pZ+d5e75X9EFk0ztVszkmGG4/Va60o0yTJTevBfNxYaXZfdNFH6kIB+oHOk+VnGvsgwc1kdFimJqdVQheY9lyGzOA/cObWcpGEdeyqLkx7XYrvMrPozrni+OlnUYIECTsEcIuenr9vdCKXHmH53GK/V6hQRzoaXwKuWWomemBHF9kzaWFlQid8W6pjcYEB2tKBqjrATUhmBmdYYmRIg6OAcvWSVMlwV6T8vZCYe2XiPaXepk9RBSs/BgInRlVTNnD4c7Xwp7YU8zI7/Jd9s0eSqlWOeS2WgRhrXpMCkgoCmCzZ5BvOEmSJkpigfzlpl9i6x4fM2t5UGWmudAeMTkTOZrWh/+v3/soFjB0vbL2B3C/U2ZccmdzocXX+gHugDLc6Ll5Fva1Z5XaGIHuDOp9Izf6icLbdwTwSNUfvZoopO2Q20JIIGdTx8LIZEcNGR61uw+7Dh0+CYxkgbkUc="
+
 sudo: required
 
 language: c
@@ -27,8 +33,20 @@ env:
 
 script:
   - >
-    docker run
-    -v `pwd`:/tmp/build
-    -w /tmp/build
-    -e CC=$CC
-    $DISTRO /bin/bash -ex .travis.test $DISTRO
+    if [ "${COVERITY_SCAN_BRANCH}" != 1 ]; then
+        docker run
+        -v `pwd`:/tmp/build
+        -w /tmp/build
+        -e CC=$CC
+        $DISTRO /bin/bash -ex .travis.test $DISTRO
+    fi
+
+addons:
+  coverity_scan:
+    project:
+      name: "latchset/jose"
+      description: "Build submitted via Travis CI"
+    notification_email: christian@python.org
+    build_command_prepend: "./.travis.coverity"
+    build_command:   "make -j 4"
+    branch_pattern: coverity_scan
